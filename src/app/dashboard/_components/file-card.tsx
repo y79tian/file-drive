@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Doc, Id } from "../../convex/_generated/dataModel";
+import { Doc, Id } from "../../../../convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -22,6 +22,7 @@ import {
   ImageIcon,
   FileTextIcon,
   GanttChartIcon,
+  StarIcon,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -36,7 +37,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { api } from "../../../../convex/_generated/api";
 import { useToast } from "@/components/ui/use-toast";
 import { ReactNode } from "react";
 import Image from "next/image";
@@ -44,6 +45,7 @@ import Image from "next/image";
 function FileCardAction({ file }: { file: Doc<"files"> }) {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const deleteFile = useMutation(api.files.deleteFile);
+  const toggleFavorite = useMutation(api.files.toggleFavorite);
 
   const { toast } = useToast();
   return (
@@ -86,6 +88,14 @@ function FileCardAction({ file }: { file: Doc<"files"> }) {
           >
             <TrashIcon className="w-4 h-4" />
             Delete
+          </DropdownMenuItem>
+          <DropdownMenuSeparator/>
+          <DropdownMenuItem
+            onClick={async() => { await toggleFavorite({fileId: file._id})}}
+            className="flex gap-1 text-red-600 items-center cursor-pointer"
+          >
+            <StarIcon className="w-4 h-4" />
+            Favorite
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

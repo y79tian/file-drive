@@ -23,6 +23,7 @@ import {
   FileTextIcon,
   GanttChartIcon,
   StarIcon,
+  StarHalf,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -42,12 +43,19 @@ import { useToast } from "@/components/ui/use-toast";
 import { ReactNode } from "react";
 import Image from "next/image";
 
-function FileCardAction({ file }: { file: Doc<"files"> }) {
+function FileCardAction({
+  file,
+  isFavorited,
+}: {
+  file: Doc<"files">;
+  isFavorited: boolean;
+}) {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const deleteFile = useMutation(api.files.deleteFile);
   const toggleFavorite = useMutation(api.files.toggleFavorite);
 
   const { toast } = useToast();
+
   return (
     <>
       <AlertDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
@@ -89,13 +97,25 @@ function FileCardAction({ file }: { file: Doc<"files"> }) {
             <TrashIcon className="w-4 h-4" />
             Delete
           </DropdownMenuItem>
-          <DropdownMenuSeparator/>
+          <DropdownMenuSeparator />
           <DropdownMenuItem
-            onClick={async() => { await toggleFavorite({fileId: file._id})}}
+            onClick={async () => {
+              await toggleFavorite({ fileId: file._id });
+            }}
             className="flex gap-1 text-red-600 items-center cursor-pointer"
           >
-            <StarIcon className="w-4 h-4" />
-            Favorite
+            {isFavorited ? (
+              <div className="flex gap-1 items-center cursor-pointer">
+                <StarIcon className="w-4 h-4" />
+                Unfavorite
+              </div>
+            ) : (
+              <div className="flex gap-1 items-center cursor-pointer">
+                <StarHalf className="w-4 h-4" />
+                Favorite
+              </div>
+            )}
+            
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -103,12 +123,21 @@ function FileCardAction({ file }: { file: Doc<"files"> }) {
   );
 }
 
-export function FileCard({ file }: { file: Doc<"files"> }) {
+export function FileCard({
+  file,
+  favorites,
+}: {
+  file: Doc<"files">;
+  favorites: Doc<"favorites">[];
+}) {
   const typeIcons = {
     image: <ImageIcon />,
     pdf: <FileTextIcon />,
     csv: <GanttChartIcon />,
   } as Record<Doc<"files">["type"], ReactNode>;
+  const isFavorited = favorites.some(
+    (favorite) => favorite.fileId === file.fileId
+  );
   return (
     <Card>
       <CardHeader className="relative">
@@ -117,7 +146,7 @@ export function FileCard({ file }: { file: Doc<"files"> }) {
           {file.name}
         </CardTitle>
         <div className="absolute top-2 right-2">
-          <FileCardAction file={file} />
+          <FileCardAction isFavorited={isFavorited} file={file} />
         </div>
         {/* <CardDescription>Card Description</CardDescription> */}
       </CardHeader>

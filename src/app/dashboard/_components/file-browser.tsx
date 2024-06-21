@@ -14,10 +14,10 @@ import useDebouncedState from "../../hooks/useDebounce";
 
 export default function FileBrowser({
   title,
-  favorites=false,
+  favoritesOnly = false,
 }: {
   title: string;
-  favorites?: boolean;
+  favoritesOnly?: boolean;
 }) {
   const organization = useOrganization();
   const user = useUser();
@@ -29,9 +29,13 @@ export default function FileBrowser({
   if (organization.isLoaded && user.isLoaded) {
     orgId = organization.organization?.id ?? user.user?.id;
   }
+  const favorites = useQuery(
+    api.files.getAllFavorites,
+    orgId ? { orgId } : "skip"
+  );
   const files = useQuery(
     api.files.getFiles,
-    orgId ? { orgId, favorites } : "skip"
+    orgId ? { orgId, favoritesOnly } : "skip"
   );
   const filteredFiles = files
     ? files.filter((file) =>
@@ -57,7 +61,13 @@ export default function FileBrowser({
           {filteredFiles.length > 0 ? (
             <div className="grid grid-cols-3 gap-4">
               {filteredFiles?.map((file) => {
-                return <FileCard key={file._id} file={file} />;
+                return (
+                  <FileCard
+                    favorites={favorites ?? []}
+                    key={file._id}
+                    file={file}
+                  />
+                );
               })}
             </div>
           ) : (

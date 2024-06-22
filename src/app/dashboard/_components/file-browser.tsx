@@ -33,10 +33,12 @@ export default function FileBrowser({
     api.files.getAllFavorites,
     orgId ? { orgId } : "skip"
   );
-  const files = useQuery(
+  const filesQuery = useQuery(
     api.files.getFiles,
     orgId ? { orgId, favoritesOnly } : "skip"
   );
+
+  const files = (organization.isLoaded && user.isLoaded)? (orgId ? filesQuery : []): undefined;
   const filteredFiles = files
     ? files.filter((file) =>
         file.name.toLowerCase().includes(debouncedQuery.toLowerCase())
@@ -51,14 +53,14 @@ export default function FileBrowser({
           <div className="text-2xl">Loading...</div>
         </div>
       )}
-      {!isLoading && (files.length > 0 || query) && (
+      {!isLoading && (
         <div className="w-full">
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-4xl font-bold">{title}</h1>
             <SearchBar query={query} setQuery={setQuery} />
             <UploadButton />
           </div>
-          {filteredFiles.length > 0 ? (
+          {filteredFiles && filteredFiles.length > 0 ? (
             <div className="grid grid-cols-3 gap-4">
               {filteredFiles?.map((file) => {
                 return (

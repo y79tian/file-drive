@@ -42,6 +42,7 @@ import { api } from "../../../../convex/_generated/api";
 import { useToast } from "@/components/ui/use-toast";
 import { ReactNode } from "react";
 import Image from "next/image";
+import { Protect } from "@clerk/nextjs";
 
 function FileCardAction({
   file,
@@ -90,14 +91,21 @@ function FileCardAction({
           <MoreVertical />
         </DropdownMenuTrigger>
         <DropdownMenuContent>
-          <DropdownMenuItem
-            onClick={() => setIsConfirmOpen(true)}
-            className="flex gap-1 text-red-600 items-center cursor-pointer"
-          >
-            <TrashIcon className="w-4 h-4" />
-            Delete
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
+        <Protect
+          role="org:admin"
+        >
+          <>
+              <DropdownMenuItem
+                onClick={() => setIsConfirmOpen(true)}
+                className="flex gap-1 text-red-600 items-center cursor-pointer"
+                >
+                <TrashIcon className="w-4 h-4" />
+                Delete
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+                </>
+        </Protect>
+
           <DropdownMenuItem
             onClick={async () => {
               await toggleFavorite({ fileId: file._id });

@@ -26,7 +26,7 @@ async function hasAccessToOrg(ctx: MutationCtx | QueryCtx, orgId: string) {
     return null;
   }
   const hasAccess =
-    user.orgIds.includes(orgId) || user.tokenIdentifier.includes(orgId);
+    user.orgIds.some((i) => i.orgId.includes(orgId))|| user.tokenIdentifier.includes(orgId);
   if (!hasAccess) return null;
   return { user };
 }
@@ -60,6 +60,7 @@ export const getFiles = query({
     favoritesOnly: v.optional(v.boolean()),
   },
   async handler(ctx, args) {
+    console.log("api!!!!");
     const hasAccess = await hasAccessToOrg(ctx, args.orgId);
     if (!hasAccess) {
       return [];
@@ -90,6 +91,10 @@ export const deleteFile = mutation({
     const access = await hasAccessToFile(ctx, args.fileId);
     if (!access) {
       throw new ConvexError("You do not have access to this org!");
+    }
+    const isAdmin = access.user.orgIds.some((org)=> org.orgId === access.file.orgId && org.role === "admin");
+    if (!isAdmin) {
+      throw new ConvexError("You do not have admin access to this org!");
     }
     await ctx.db.delete(args.fileId);
   },

@@ -15,9 +15,11 @@ import useDebouncedState from "../../hooks/useDebounce";
 export default function FileBrowser({
   title,
   favoritesOnly = false,
+  deletedOnly = false,
 }: {
   title: string;
   favoritesOnly?: boolean;
+  deletedOnly?: boolean;
 }) {
   const organization = useOrganization();
   const user = useUser();
@@ -35,7 +37,7 @@ export default function FileBrowser({
   );
   const filesQuery = useQuery(
     api.files.getFiles,
-    orgId ? { orgId, favoritesOnly } : "skip"
+    orgId ? { orgId, favoritesOnly, deletedOnly } : "skip"
   );
 
   const files = (organization.isLoaded && user.isLoaded)? (orgId ? filesQuery : []): undefined;

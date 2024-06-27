@@ -66,6 +66,7 @@ export const createFile = mutation({
 export const getFiles = query({
   args: {
     orgId: v.string(),
+    type: v.optional(fileTypes),
     favoritesOnly: v.optional(v.boolean()),
     deletedOnly: v.optional(v.boolean()),
   },
@@ -78,6 +79,9 @@ export const getFiles = query({
       .query("files")
       .withIndex("by_orgId", (q) => q.eq("orgId", args.orgId))
       .collect();
+    if (args.type) {
+      files = files.filter((file) => file.type == args.type);
+    }
     if (args.deletedOnly) {
       return files.filter((file) => file.shouldDelete);
     }

@@ -8,9 +8,12 @@ import Image from "next/image";
 
 import UploadButton from "./upload-button";
 import { FileCard } from "./file-card";
-import { Loader2 } from "lucide-react";
+import { GridIcon, Loader2, RowsIcon } from "lucide-react";
 import { SearchBar } from "./search-bar";
 import useDebouncedState from "../../hooks/useDebounce";
+import { DataTable } from "./file-table";
+import { columns } from "./columns";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function FileBrowser({
   title,
@@ -40,40 +43,69 @@ export default function FileBrowser({
     orgId ? { orgId, favoritesOnly, deletedOnly } : "skip"
   );
 
-  const files = (organization.isLoaded && user.isLoaded)? (orgId ? filesQuery : []): undefined;
+  const files =
+    organization.isLoaded && user.isLoaded
+      ? orgId
+        ? filesQuery
+        : []
+      : undefined;
   const filteredFiles = files
-    ? files.filter((file) =>
-        file.name.toLowerCase().includes(debouncedQuery.toLowerCase())
-      )
+    ? files
+        .filter((file) =>
+          file.name.toLowerCase().includes(debouncedQuery.toLowerCase())
+        )
+        .map((file) => ({
+          ...file,
+          isFavorited: (favorites ?? []).some(
+            (favorite) => favorite.fileId === file.fileId
+          ),
+        }))
     : [];
+
   const isLoading = files === undefined;
   return (
     <>
-      {isLoading && (
+      {/* {isLoading && (
         <div className="w-full flex flex-col gap-8 items-center mt-24">
           <Loader2 className="h-24 w-24 animate-spin text-gray-500" />
-          <div className="text-2xl">Loading...</div>
+          <div className="text-2xl">Loading Your Files...</div>
         </div>
-      )}
-      {!isLoading && (
-        <div className="w-full">
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-4xl font-bold">{title}</h1>
-            <SearchBar query={query} setQuery={setQuery} />
-            <UploadButton />
-          </div>
-          {filteredFiles && filteredFiles.length > 0 ? (
-            <div className="grid grid-cols-3 gap-4">
-              {filteredFiles?.map((file) => {
-                return (
-                  <FileCard
-                    favorites={favorites ?? []}
-                    key={file._id}
-                    file={file}
-                  />
-                );
-              })}
-            </div>
+      )} */}
+      <div className="w-full">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-4xl font-bold">{title}</h1>
+          <SearchBar query={query} setQuery={setQuery} />
+          <UploadButton />
+        </div>
+        <Tabs defaultValue="grid">
+          <TabsList className="mb-4">
+            <TabsTrigger value="grid" className="flex gap-2 items-center">
+              <GridIcon />
+              Grid
+            </TabsTrigger>
+            <TabsTrigger value="table" className="flex gap-2 items-center">
+              <RowsIcon />
+              Table
+            </TabsTrigger>
+          </TabsList>
+          {isLoading ? (
+            <>
+              <Loader2 className="h-24 w-24 animate-spin text-gray-500" />
+              <div className="text-2xl">Loading Your Files...</div>
+            </>
+          ) : filteredFiles && filteredFiles.length > 0 ? (
+            <>
+              <TabsContent value="grid">
+                <div className="grid grid-cols-3 gap-4">
+                  {filteredFiles?.map((file) => {
+                    return <FileCard key={file._id} file={file} />;
+                  })}
+                </div>
+              </TabsContent>
+              <TabsContent value="table">
+                <DataTable columns={columns} data={filteredFiles} />
+              </TabsContent>
+            </>
           ) : (
             <div className="flex flex-col gap-8 items-center mt-24">
               <Image
@@ -88,8 +120,8 @@ export default function FileBrowser({
               <UploadButton />
             </div>
           )}
-        </div>
-      )}
+        </Tabs>
+      </div>
     </>
   );
 }
